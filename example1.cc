@@ -7,28 +7,55 @@
  */
 
 #include <iostream>
+#include <stdint.h>
+#include <fstream>
+#include <iomanip>
+#include <sstream>
+#include <stdio.h>
 #include "cdk.h"
+//#include "binHeader.h"
 
-
-#define MATRIX_WIDTH 3
+#define MATRIX_WIDTH 5
 #define MATRIX_HEIGHT 3
 #define BOX_WIDTH 15
-#define MATRIX_NAME_STRING "Test Matrix"
+#define MATRIX_NAME_STRING "Binary File Contents"
 
 using namespace std;
 
+/*
+ * Records in the file have a fixed length buffer
+ * that will hold a C‐Style string. This is the
+ * size of the fixed length buffer.
+ */
+const int maxRecordStringLength = 25;
+
+class BinaryFileRecord
+{
+    public:
+       uint8_t strLength;
+       char   stringBuffer[maxRecordStringLength];
+};
+
+class BinaryFileHeader
+{
+public:  
+  uint32_t magicNumber;         /* Should be 0xFEEDFACE */
+       uint32_t versionNumber;
+       uint64_t numRecords;
+};
 
 int main()
 {
+  // uint32_t magicNumber = 0XFEEDFACE;
 
   WINDOW*window;
   CDKSCREEN*cdkscreen;
   CDKMATRIX     *myMatrix;           // CDK Screen Matrix
 
-  const char *rowTitles[MATRIX_HEIGHT+1] = {"R0", "R1", "R2", "R3"};
-  const char *columnTitles[MATRIX_WIDTH+1] = {"C0", "C1", "C2", "C3"};
-  int boxWidths[MATRIX_WIDTH+1] = {BOX_WIDTH, BOX_WIDTH, BOX_WIDTH, BOX_WIDTH};
-  int boxTypes[MATRIX_WIDTH+1] = {vMIXED, vMIXED, vMIXED, vMIXED};
+  const char *rowTitles[MATRIX_HEIGHT+1] = {"R0", "a", "b", "c"};
+  const char *columnTitles[MATRIX_WIDTH+1] = {"C0", "a", "b", "c", "d", "e"};
+  int boxWidths[MATRIX_WIDTH+1] = {BOX_WIDTH, BOX_WIDTH, BOX_WIDTH, BOX_WIDTH, BOX_WIDTH};
+  int boxTypes[MATRIX_WIDTH+1] = {vMIXED, vMIXED, vMIXED, vMIXED, vMIXED};
 
   /*
    * Initialize the Cdk screen.
@@ -56,6 +83,49 @@ int main()
 
   /* Display the Matrix */
   drawCDKMatrix(myMatrix, true);
+  
+  stringstream binStream;
+  BinaryFileRecord *myRecord = new BinaryFileRecord();
+  BinaryFileHeader *myHeader = new BinaryFileHeader();
+   myRecord->strLength = 127.4567;
+   //  int counter;
+  //  ofstream binOutfile ("binaryTestFile.bin", ios::out | ios::binary);
+ 
+ ifstream binInfile ("binaryTestFile.bin", ios::in | ios::binary);
+ if(!binInfile)
+   {
+     cout<<"Cannot open!"<<endl;
+   }
+
+ binInfile.read((char *) myHeader, sizeof(BinaryFileHeader));
+ binStream<<"0x"<< uppercase<<hex<<myHeader->magicNumber;
+ string str = "Magic: " + binStream.str();
+ setCDKMatrixCell(myMatrix, 1, 1, str.c_str());
+ binStream.str(std::string());
+
+ binInfile.read((char *) myHeader, sizeof(BinaryFileHeader));
+ binStream<< myHeader->versionNumber;
+ str = "Version: " +  binStream.str();
+ setCDKMatrixCell(myMatrix, 1, 2, str.c_str());
+ binStream.str(std::string());
+
+ binInfile.read((char *) myHeader, sizeof(BinaryFileHeader));
+ binStream<<myHeader->numRecords;
+ str = "numRecords: " +  binStream.str();
+ setCDKMatrixCell(myMatrix, 1, 3, str.c_str());
+ binStream.str(std::string());
+
+ // binInFile.read((char *) myHeader -> numVersions, sizeof(BinaryFileHeader));
+  // uint32_t magicNumber = 0;
+  // cout << "Magic: " << myHeader ->  magicNumber << endl;
+  // cout<< myHeader -> numVersions <<endl;
+  // binInFile.read((char *) myHeader,(char*) sizeof(BinaryFileHeader));
+
+  // setCDKMatrixCell(myMatrix, 2,3, myHeader -> versionNumber);
+ //  binOutfile.close();
+  binInfile.close();
+
+
 
   /*
    * Dipslay a message
