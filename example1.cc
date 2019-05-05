@@ -2,8 +2,8 @@
  * Usage of CDK Matrix
  *
  * File:   example1.cc
- * Author: Stephen Perkins
- * Email:  stephen.perkins@utdallas.edu
+ * Author: Krishna Boreda
+ * Email:  kvb160230@utdallas.edu
  */
 
 #include <iostream>
@@ -17,7 +17,7 @@
 
 #define MATRIX_WIDTH 5
 #define MATRIX_HEIGHT 3
-#define BOX_WIDTH 15
+#define BOX_WIDTH 20
 #define MATRIX_NAME_STRING "Binary File Contents"
 
 using namespace std;
@@ -87,42 +87,55 @@ int main()
   stringstream binStream;
   BinaryFileRecord *myRecord = new BinaryFileRecord();
   BinaryFileHeader *myHeader = new BinaryFileHeader();
-   myRecord->strLength = 127.4567;
+  //   myRecord->strLength = 127.4567;
    //  int counter;
   //  ofstream binOutfile ("binaryTestFile.bin", ios::out | ios::binary);
  
- ifstream binInfile ("binaryTestFile.bin", ios::in | ios::binary);
+ ifstream binInfile ("cs3377.bin", ios::in | ios::binary);
  if(!binInfile)
    {
      cout<<"Cannot open!"<<endl;
    }
 
+ 
  binInfile.read((char *) myHeader, sizeof(BinaryFileHeader));
+
  binStream<<"0x"<< uppercase<<hex<<myHeader->magicNumber;
  string str = "Magic: " + binStream.str();
  setCDKMatrixCell(myMatrix, 1, 1, str.c_str());
  binStream.str(std::string());
 
- binInfile.read((char *) myHeader, sizeof(BinaryFileHeader));
- binStream<< myHeader->versionNumber;
+ binStream << dec << myHeader->versionNumber;
  str = "Version: " +  binStream.str();
  setCDKMatrixCell(myMatrix, 1, 2, str.c_str());
  binStream.str(std::string());
 
- binInfile.read((char *) myHeader, sizeof(BinaryFileHeader));
  binStream<<myHeader->numRecords;
  str = "numRecords: " +  binStream.str();
  setCDKMatrixCell(myMatrix, 1, 3, str.c_str());
  binStream.str(std::string());
 
- // binInFile.read((char *) myHeader -> numVersions, sizeof(BinaryFileHeader));
-  // uint32_t magicNumber = 0;
-  // cout << "Magic: " << myHeader ->  magicNumber << endl;
-  // cout<< myHeader -> numVersions <<endl;
-  // binInFile.read((char *) myHeader,(char*) sizeof(BinaryFileHeader));
+ int i = 0;
+ int col = 2; 
+ int len = 0;
+ 
+ while(i<= myHeader->numRecords)
+   {
+     binInfile.read((char*) myRecord, sizeof(BinaryFileRecord));
+     binStream << myRecord-> stringBuffer;
+     str = binStream.str();
+     setCDKMatrixCell(myMatrix, col, 2, str.c_str());
+     binStream.str(std::string());
 
-  // setCDKMatrixCell(myMatrix, 2,3, myHeader -> versionNumber);
- //  binOutfile.close();
+     len = myRecord -> strLength;
+     binStream << len;
+     str = "strlen: " +  binStream.str();
+     setCDKMatrixCell(myMatrix, col, 1, str.c_str());
+     binStream.str(std::string());
+     i++;
+     col++;
+   }
+ 
   binInfile.close();
 
 
@@ -130,7 +143,7 @@ int main()
   /*
    * Dipslay a message
    */
-  setCDKMatrixCell(myMatrix, 2, 2, "Test Message");
+  // setCDKMatrixCell(myMatrix, 2, 2, "Test Message");
   drawCDKMatrix(myMatrix, true);    /* required  */
 
   /* so we can see results */
